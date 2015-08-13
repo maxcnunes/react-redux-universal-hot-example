@@ -1,13 +1,10 @@
 import Express from 'express';
 import React from 'react';
 import Location from 'react-router/lib/Location';
-import config from './config';
 import favicon from 'serve-favicon';
 import compression from 'compression';
-import httpProxy from 'http-proxy';
 import path from 'path';
 import createStore from './redux/create';
-import api from './api/api';
 import ApiClient from './ApiClient';
 import universalRouter from './universalRouter';
 import Html from './Html';
@@ -15,9 +12,6 @@ import PrettyError from 'pretty-error';
 
 const pretty = new PrettyError();
 const app = new Express();
-const proxy = httpProxy.createProxyServer({
-  target: 'http://localhost:' + config.apiPort
-});
 
 app.use(compression());
 app.use(favicon(path.join(__dirname, '..', 'static', 'favicon.ico')));
@@ -30,10 +24,8 @@ if (!__DEVELOPMENT__) {
 
 app.use(require('serve-static')(path.join(__dirname, '..', 'static')));
 
-// Proxy to API server
-app.use('/api', (req, res) => {
-  proxy.web(req, res);
-});
+// API
+app.use('/api', require('./api/api'));
 
 app.use((req, res) => {
   if (__DEVELOPMENT__) {
@@ -69,18 +61,11 @@ app.use((req, res) => {
   }
 });
 
-if (config.port) {
-  app.listen(config.port, (err) => {
-    if (err) {
-      console.error(err);
-    } else {
-      api().then(() => {
-        console.info('==> ✅  Server is listening');
-        console.info('==> 🌎  %s running on port %s, API on port %s', config.app.name, config.port, config.apiPort);
-        console.info('----------\n==> 💻  Open http://localhost:%s in a browser to view the app.', config.port);
-      });
-    }
+
+export default function(port) {
+  app.listen(port, function onListening(err) {
+    if (err) return console.error(err);
+    console.log(`server listening on [ ${this.address().address}:${this.address().port} ]`);
+    console.log(`virtual host [ http://${process.env.VIRTUAL_HOST} ]`);
   });
-} else {
-  console.error('==>     ERROR: No PORT environment variable has been specified');
 }

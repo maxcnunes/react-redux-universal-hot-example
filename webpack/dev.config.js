@@ -3,15 +3,14 @@ var webpack = require('webpack');
 var writeStats = require('./utils/writeStats');
 var notifyStats = require('./utils/notifyStats');
 var assetsPath = path.resolve(__dirname, '../static/dist');
-var host = 'localhost';
-var port = parseInt(process.env.PORT) + 1 || 3001;
+var virtualHost = process.env.VIRTUAL_HOST;
 
 module.exports = {
   devtool: 'inline-source-map',
   context: path.resolve(__dirname, '..'),
   entry: {
     'main': [
-      'webpack-dev-server/client?http://' + host + ':' + port,
+      `webpack-dev-server/client?http://${virtualHost}`,
       'webpack/hot/only-dev-server',
       './src/client.js'
     ]
@@ -20,7 +19,7 @@ module.exports = {
     path: assetsPath,
     filename: '[name]-[hash].js',
     chunkFilename: '[name]-[chunkhash].js',
-    publicPath: 'http://' + host + ':' + port + '/dist/'
+    publicPath: '/dist/'
   },
   module: {
     loaders: [

@@ -1,7 +1,7 @@
 var WebpackDevServer = require('webpack-dev-server'),
   webpack = require('webpack'),
   config = require('./dev.config'),
-  host = process.env.HOST || 'localhost',
+  host = process.env.VIRTUAL_HOST || '10.10.10.10',
   port = parseInt(process.env.PORT) + 1 || 3001,
   serverOptions = {
     contentBase: 'http://' + host + ':' + port,
@@ -21,6 +21,12 @@ var WebpackDevServer = require('webpack-dev-server'),
   }),
   webpackDevServer = new WebpackDevServer(compiler, serverOptions);
 
-webpackDevServer.listen(port, host, function() {
-  console.info('==> 🚧  Webpack development server listening on %s:%s', host, port);
-});
+
+export default function (port) {
+  if (config.environment === 'production') return;
+
+  webpackDevServer.listen(port, '0.0.0.0', function (err) {
+    if (err) return console.error(err);
+    console.log(`webpack dev server listening on [ ${this.address().address}:${this.address().port} ]`);
+  });
+}
